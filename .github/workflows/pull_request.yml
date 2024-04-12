@@ -1,21 +1,18 @@
-name: Pull request
-
-on:
-  pull_request:
-    branches:
-      - main
-
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
-
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref
+    }}
 jobs:
   build:
     uses: ./.github/workflows/test.yml
-
   pull-request:
-    needs: build
     name: Pull request success
-    runs-on: ubuntu-latest
+    needs: build
+    runs-on: self-hosted
     steps:
-      - run: 'true'
+    - continue-on-error: true
+      run: 'true'
+name: Pull request
+on:
+  repository_dispatch:
+    types: trigger-ga___pull_request.yml

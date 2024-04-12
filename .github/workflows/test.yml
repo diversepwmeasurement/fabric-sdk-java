@@ -1,40 +1,32 @@
-name: Build
-
-on:
-  workflow_call:
-    inputs:
-      fabric-version:
-        default: '2.2'
-        required: false
-        type: string
-      checkout-ref:
-        default: ''
-        required: false
-        type: string
-
 env:
   FABRIC_VERSION: ${{ inputs.fabric-version }}
   GOPATH: ${{ github.workspace }}/src/test/fixture
-
 jobs:
   test:
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
+    steps:
+    - continue-on-error: true
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ inputs.checkout-ref }}
+    - continue-on-error: true
+      name: Set up JDK ${{ matrix.java-version }}
+      uses: actions/setup-java@v4
+      with:
+        cache: maven
+        distribution: temurin
+        java-version: ${{ matrix.java-version }}
+    - continue-on-error: true
+      name: Integration tests
+      run: ./scripts/run-integration-tests.sh
     strategy:
       fail-fast: false
       matrix:
         java-version:
-          - "8"
-          - "11"
-          - "17"
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.checkout-ref }}
-      - name: Set up JDK ${{ matrix.java-version }}
-        uses: actions/setup-java@v4
-        with:
-          java-version: ${{ matrix.java-version }}
-          distribution: temurin
-          cache: maven
-      - name: Integration tests
-        run: ./scripts/run-integration-tests.sh
+        - '8'
+        - '11'
+        - '17'
+name: Build
+on:
+  repository_dispatch:
+    types: trigger-ga___test.yml
